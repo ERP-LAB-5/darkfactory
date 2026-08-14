@@ -11,6 +11,7 @@ as well, and none of it lives only in an untracked `~/.claude` directory.
 | --- | --- | --- |
 | [`sap-cc-operations`](skills/sap-cc-operations/) | SAP Cloud Connector: the admin REST API (monitoring is **not** under `/api/v1`), the two first-run 403s, the trace format, and working through `NoChannelsAvailableException` | `sap-cc-operator` |
 | [`sap-di-rms-api`](skills/sap-di-rms-api/) | SAP Data Intelligence RMS internal API — replication flows, task monitors, start/resume/suspend. The public DI API does not cover RMS at all | `di-autohealer` |
+| [`erplab5-security-audit`](skills/erplab5-security-audit/) | Eight-domain audit across BTP (destinations, role collections, service keys, Kyma), the Cloud Connector boundary, and NetWeaver on-prem (gateway ACLs, ICF, default users, critical auth objects, audit log) — plus the repo sweep that runs before any push | `sap-cc-operator`, `di-autohealer` |
 | [`git-commit`](skills/git-commit/) | Commit conventions across DLAB5 and ERP-LAB-5 — subject convention per repo, the body shape with its verification block, the two sign-off trailers | `~/.claude` (machine-wide) |
 
 ## How the wiring works

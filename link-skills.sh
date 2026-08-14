@@ -14,9 +14,11 @@ set -euo pipefail
 #   <name>   a sibling project directory; the link lands in <name>/.claude/skills/
 #   ~        the user-level ~/.claude/skills/, loaded in every session on this box
 LINKS=(
-  "sap-cc-operations : sap-cc-operator"
-  "sap-di-rms-api    : di-autohealer"
-  "git-commit        : ~"
+  "sap-cc-operations      : sap-cc-operator"
+  "sap-di-rms-api         : di-autohealer"
+  "erplab5-security-audit : sap-cc-operator"
+  "erplab5-security-audit : di-autohealer"
+  "git-commit             : ~"
 )
 
 DF="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
