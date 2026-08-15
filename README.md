@@ -2,7 +2,7 @@
 
 Shared **Claude Code skills** for the ERP-LAB-5 projects. One version-controlled
 copy of each skill, symlinked into the projects that need it — so a correction
-made while working on `di-autohealer` is immediately true for `sap-cc-operator`
+made while working on `sap-di-autopilot` is immediately true for `sap-cc-operator`
 as well, and none of it lives only in an untracked `~/.claude` directory.
 
 ## Skills
@@ -10,8 +10,9 @@ as well, and none of it lives only in an untracked `~/.claude` directory.
 | Skill | What it covers | Linked into |
 | --- | --- | --- |
 | [`sap-cc-operations`](skills/sap-cc-operations/) | SAP Cloud Connector: the admin REST API (monitoring is **not** under `/api/v1`), the two first-run 403s, the trace format, and working through `NoChannelsAvailableException` | `sap-cc-operator` |
-| [`sap-di-rms-api`](skills/sap-di-rms-api/) | SAP Data Intelligence RMS internal API — replication flows, task monitors, start/resume/suspend. The public DI API does not cover RMS at all | `di-autohealer` |
-| [`erplab5-security-audit`](skills/erplab5-security-audit/) | Eight-domain audit across BTP (destinations, role collections, service keys, Kyma), the Cloud Connector boundary, and NetWeaver on-prem (gateway ACLs, ICF, default users, critical auth objects, audit log) — plus the repo sweep that runs before any push | `sap-cc-operator`, `di-autohealer` |
+| [`sap-di-rms-api`](skills/sap-di-rms-api/) | SAP Data Intelligence RMS internal API — replication flows, task monitors, start/resume/suspend. The public DI API does not cover RMS at all | `sap-di-autopilot` |
+| [`erplab5-cli-design`](skills/erplab5-cli-design/) | House rules for the Python operator tools — read a system at the level the question needs, `--` arguments for batch with a menu when called bare, and no default system in a config file | `sap-cc-operator`, `sap-di-autopilot` |
+| [`erplab5-security-audit`](skills/erplab5-security-audit/) | Eight-domain audit across BTP (destinations, role collections, service keys, Kyma), the Cloud Connector boundary, and NetWeaver on-prem (gateway ACLs, ICF, default users, critical auth objects, audit log) — plus the repo sweep that runs before any push | `sap-cc-operator`, `sap-di-autopilot` |
 | [`git-commit`](skills/git-commit/) | Commit conventions across DLAB5 and ERP-LAB-5 — subject convention per repo, the body shape with its verification block, the two sign-off trailers | `~/.claude` (machine-wide) |
 
 ## How the wiring works
@@ -24,7 +25,7 @@ darkfactory/skills/sap-cc-operations/SKILL.md          <- the only real copy
 sap-cc-operator/.claude/skills/
   sap-cc-operations -> ../../../darkfactory/skills/sap-cc-operations
 
-di-autohealer/.claude/skills/
+sap-di-autopilot/.claude/skills/
   sap-di-rms-api    -> ../../../darkfactory/skills/sap-di-rms-api
 
 ~/.claude/skills/
@@ -49,7 +50,7 @@ and refuses to overwrite a real (non-symlink) directory.
 
 ## This repo is public
 
-Unlike `sap-cc-operator` (private) and `di-autohealer` (no remote at all),
+Unlike `sap-cc-operator` (private) and `sap-di-autopilot` (no remote at all),
 **everything committed here is world-readable**. Skills are written while working
 against real systems, so they attract real identifiers — that is the whole risk.
 
@@ -93,7 +94,7 @@ A skill that restates the obvious costs context and earns nothing.
 
 - [`sap-cc-operator`](https://github.com/ERP-LAB-5/sap-cc-operator) — SAP Cloud
   Connector tooling
-- `di-autohealer` — SAP Data Intelligence replication-flow auto-healer
+- `sap-di-autopilot` — SAP Data Intelligence replication-flow auto-healer
 - `~/digitalhomeCloud/digitalhome-cloud-darkfactory` — the DigitalHome.Cloud
   equivalent. Its skills (`dhc-amplify-gen2`, `dhc-security-audit`,
   `dhc-device-autodiscovery`, `dhc-electrical-installation-design`) are tied to

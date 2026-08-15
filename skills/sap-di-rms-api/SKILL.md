@@ -50,6 +50,33 @@ tenant a full sweep is 126 calls and takes several minutes. If you only need to 
 flows are unhealthy, `replicationflowMonitors` gives `taskMetrics.error` per flow far more
 cheaply — but it stops at flow level and has no partition detail.
 
+Note also that **`taskMonitors` cannot return less**: there is no variant that omits partitions,
+so "task level" and "partition level" over the same flows are the identical request. The only
+two ways to make a read cheap are not calling `taskMonitors` at all, or calling it for fewer
+flows — pick the flows off `replicationflowMonitors` first. On a tenant of a few hundred flows
+the difference is seconds against minutes.
+
+### Reading `replicationflowMonitors` correctly
+
+Three traps, all measured rather than assumed:
+
+- **`taskMetrics` is sparse.** Only non-zero keys appear — a flow may return
+  `{"deltaRunning": 89, "error": 1, "initialCompleted": 90, "total": 90}` with no `suspended`,
+  `created` or `completed` key at all. Read it with `.get(key) or 0`.
+- **There is no `retrying` metric.** DI counts a `RETRYING` task as running: a flow with 123
+  `DELTA_RUNNING` and 2 `RETRYING` tasks reports `initialRunning: 2`. The status buckets are
+  `deltaRunning`, `initialRunning`, `error`, `suspended`, `created`, `completed`. `total` is the
+  task count, and `initialCompleted` is **not** a status — it overlaps `deltaRunning`, so
+  summing it into a breakdown double-counts.
+- **The flow `status` is independent of its tasks.** A flow reports `RUNNING` with every one of
+  its tasks in `ERROR`. It describes the flow's runtime state, not the health of what is under
+  it, and it cannot be reconstructed from the task rows — so if you cache a scan, store this
+  response verbatim rather than deriving it later.
+
+The consequence for monitoring: `taskMetrics.error` only rises once a task has stopped
+entirely, so this endpoint cannot see partitions failing inside a task DI still calls running.
+It is triage, not a health guarantee.
+
 ## Writes
 
 One endpoint, four behaviours, chosen by query parameter:
@@ -126,6 +153,86 @@ your own call landed.
 Partition fields: `transferMode` (`INITIAL` / `DELTA`), `status`, `statusInfo`,
 `statusInfoTimestamp`, `retrying`, `additionalErrors`, `partitionMetrics`.
 
+## An error is not the same as status `ERROR`
+
+A partition reaches `status: "Error"` only once DI has **given up**. While it is still
+retrying it stays `Transferring`, and the failure shows only in `retryInfo.retryReason`:
+
+| status | retrying | retryReason | meaning |
+|---|---|---|---|
+| `Complete` | false | – | done |
+| `Transferring` | true | `DATA_NOT_READY` | **healthy** delta poll — never treat as an error |
+| `Transferring` | true | `ERROR` | **failing**, DI still retrying |
+| `Transferring` | false | – | in flight |
+| `Error` | false | – | failing, DI gave up |
+
+On one live sample, filtering `status == "ERROR"` found **2** of **158** things going
+wrong: the other 156 were connectivity failures still being retried. A network incident
+lives almost entirely in that `retryReason == "ERROR"` row, so a monitor that only looks
+at `ERROR` will report a healthy system through an outage.
+
+Keep the two apart when you act: an `ERROR` partition needs a restart, a retrying one is
+already being handled and restarting it just resets DI's own backoff.
+
+## Which connections a flow uses
+
+`replicationflowMonitors` carries them and nothing else does:
+
+```json
+"sourceSpaces": [{"connectionId": "<CONN>", "connectionType": "ABAP", "container": "/SLT/<id>"}],
+"targetSpaces": [{"connectionId": "<CONN>", "connectionType": "S3",  "container": "/"}]
+```
+
+`statusMetrics.spaceMetrics.<space>` adds `connectionsInUse` and `maxConnections` per side.
+
+This is the axis a connectivity fault falls along: a Cloud Connector timeout hits every
+flow over one ABAP connection and no others, and the flow name will not tell you that.
+Group failures by `connectionId`, not by flow, when the symptom looks like a network one
+(`RFC_COMMUNICATION_FAILURE`, `Timeout occurred reading protocol header from SCC`,
+`websocket: close 1006 (abnormal closure)`).
+
+## Mask DI's retry counter before grouping
+
+`statusInfo` embeds the attempt number — *"has been retried 883 times so far"* — and it
+rises on every poll. Group on the raw text and one connectivity fault fragments into
+dozens of distinct "patterns"; on one tenant that turned a single incident across 113
+objects into ~90 apparent problems. Mask the counter, keep it as a separate field.
+
+## Throughput, and the unit nobody documents
+
+`partitionMetrics` holds the volume figures in three stages — `sourceBytes` /
+`sourceRecordCount` / `sourceProcessingTime`, and the same triple for `transform` and
+`target`, plus `retryCount` and `timeSpentRetrying`. Since the partition carries
+`transferMode`, **initial and delta throughput separate here and nowhere else**: a task has a
+single cumulative `numberOfRecordsTransferred` covering both.
+
+**Every `*Time` and `timeSpent*` field is milliseconds.** Nothing says so, and the values look
+big enough to be microseconds. Two checks settle it on any tenant, and both are worth re-running
+after an upgrade:
+
+- For an uninterrupted `DELTA_RUNNING` task — continuously active, so 100 % duty —
+  `deltaLoadMetrics.timeSpentActive ÷ seconds since firstActivatedAt` lands on **1000**.
+  Measured across several hundred such tasks: median 999.8, max 1000.0.
+- No completed partition may violate `(sourceProcessingTime + timeSpentRetrying)/1000 ≤
+  completedAt − firstActivatedAt`. Seconds or microseconds break that bound everywhere.
+
+The counters are cumulative, so one response yields a rate — but two different ones, and on
+real data they diverge by more than an order of magnitude:
+
+```
+records ÷ (sourceProcessingTime/1000)        while actually working
+records ÷ (completedAt − firstActivatedAt)   end to end, including idle and retries
+```
+
+One measured initial partition: **23,692 rec/s** processing against **889 rec/s** wall clock,
+with **62 %** of the window spent retrying. Report only one and you will either flatter or
+condemn the system unfairly.
+
+The *current* rate is a third quantity and needs history: `Δ targetRecordCount ÷ Δ wall clock`
+across two reads. Keep a sample per poll if you want it — and treat a **decreasing** counter as
+a reset, not negative throughput. DI restarts counters when a task moves from initial to delta
+load, when it is resumed, and when partitions are rebuilt.
+
 ## Discovering more endpoints safely
 
 The UI is the documentation. To find a call without triggering it:
@@ -150,8 +257,10 @@ This is how the `executeTasks` contract above was established without performing
 
 ## Related
 
-- `~/DL5-Experimental/KONE/di-autohealer/docs/rms-api.md` — the same reference with the project's
+- `~/ERP-LAB-5/sap-di-autopilot/docs/rms-api.md` — the same reference with the project's
   usage and response samples
-- `~/DL5-Experimental/KONE/di-autohealer/` — a working client: `src/clients/di_http.py` (auth,
+- `~/ERP-LAB-5/sap-di-autopilot/` — a working client: `src/clients/di_http.py` (auth,
   CSRF header, logon-page detection), `di_monitor_client.py` (reads), `di_action_client.py`
-  (the PUT), `src/healing_policy.py` (when a restart is actually the right answer)
+  (the PUT), `src/scan.py` (which endpoint answers at which level),
+  `src/healing_policy.py` (when a restart is actually the right answer)
+- `erplab5-cli-design` skill — the read-depth rule this API's two read endpoints exist to serve

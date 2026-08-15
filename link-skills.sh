@@ -15,9 +15,11 @@ set -euo pipefail
 #   ~        the user-level ~/.claude/skills/, loaded in every session on this box
 LINKS=(
   "sap-cc-operations      : sap-cc-operator"
-  "sap-di-rms-api         : di-autohealer"
+  "sap-di-rms-api         : sap-di-autopilot"
+  "erplab5-cli-design     : sap-cc-operator"
+  "erplab5-cli-design     : sap-di-autopilot"
   "erplab5-security-audit : sap-cc-operator"
-  "erplab5-security-audit : di-autohealer"
+  "erplab5-security-audit : sap-di-autopilot"
   "git-commit             : ~"
 )
 
