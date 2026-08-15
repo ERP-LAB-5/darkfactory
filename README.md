@@ -50,9 +50,20 @@ and refuses to overwrite a real (non-symlink) directory.
 
 ## This repo is public
 
-Unlike `sap-cc-operator` (private) and `sap-di-autopilot` (no remote at all),
-**everything committed here is world-readable**. Skills are written while working
-against real systems, so they attract real identifiers — that is the whole risk.
+**Everything committed here is world-readable**, and so is `sap-di-autopilot`;
+only `sap-cc-operator` is private. Skills and their projects are written while
+working against real systems, so they attract real identifiers — that is the
+whole risk.
+
+| Repo | Visibility |
+| --- | --- |
+| [`darkfactory`](https://github.com/ERP-LAB-5/darkfactory) | **public** |
+| [`sap-di-autopilot`](https://github.com/ERP-LAB-5/sap-di-autopilot) | **public** |
+| [`sap-cc-operator`](https://github.com/ERP-LAB-5/sap-cc-operator) | private |
+
+Check before you assume — `gh repo view ERP-LAB-5/<name> --json visibility`.
+This table was wrong for a while, claiming `sap-di-autopilot` had no remote at
+all, which is exactly how landscape identifiers end up in a public diff.
 
 Before committing a skill, scrub:
 
