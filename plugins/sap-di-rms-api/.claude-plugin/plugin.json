@@ -1,0 +1,12 @@
+{
+  "name": "sap-di-rms-api",
+  "version": "0.1.0",
+  "description": "The SAP Data Intelligence RMS internal API: replication flows, task monitors, and start, resume and suspend. The public DI API does not cover RMS at all.",
+  "author": {
+    "name": "D-LAB-5"
+  },
+  "homepage": "https://github.com/ERP-LAB-5/darkfactory",
+  "repository": "https://github.com/ERP-LAB-5/darkfactory",
+  "license": "MIT",
+  "keywords": ["sap", "data intelligence", "rms", "replication flow", "api"]
+}

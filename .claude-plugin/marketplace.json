@@ -1,0 +1,62 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "erp-lab-5",
+  "owner": {
+    "name": "D-LAB-5",
+    "url": "https://github.com/ERP-LAB-5"
+  },
+  "description": "The ERP-LAB-5 catalogue: shared knowledge for working on these projects, the kit for building D-LAB-5 Python tools, and the tools themselves. Entries are pointers, so each plugin stays in the repository that owns it.",
+  "plugins": [
+    {
+      "name": "erplab5-house",
+      "source": "./plugins/erplab5-house",
+      "description": "House rules for every ERP-LAB-5 repository: commit conventions, CLI design for the operator tools, and the security audit.",
+      "version": "0.1.0",
+      "author": { "name": "D-LAB-5" },
+      "category": "productivity",
+      "keywords": ["erp-lab-5", "conventions", "git", "security-audit"]
+    },
+    {
+      "name": "sap-cc-operations",
+      "source": "./plugins/sap-cc-operations",
+      "description": "Operating the SAP Cloud Connector: admin REST API, the first-run 403s, traces, and NoChannelsAvailableException.",
+      "version": "0.1.0",
+      "author": { "name": "D-LAB-5" },
+      "category": "productivity",
+      "keywords": ["sap", "cloud connector", "btp"]
+    },
+    {
+      "name": "sap-di-rms-api",
+      "source": "./plugins/sap-di-rms-api",
+      "description": "The SAP Data Intelligence RMS internal API, which the public DI API does not cover.",
+      "version": "0.1.0",
+      "author": { "name": "D-LAB-5" },
+      "category": "productivity",
+      "keywords": ["sap", "data intelligence", "rms"]
+    },
+    {
+      "name": "pytool-kit",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ERP-LAB-5/python-tool-template.git",
+        "path": "plugin"
+      },
+      "description": "Build D-LAB-5 small full-stack Python tools with agents: scaffold from the template, extend through every layer, take core fixes, release.",
+      "author": { "name": "D-LAB-5" },
+      "category": "development",
+      "keywords": ["python", "flask", "mcp", "copier", "template"]
+    },
+    {
+      "name": "di-replication-sync",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ERP-LAB-5/sap-di-tools.git",
+        "path": "plugin"
+      },
+      "description": "Compare and promote SAP Data Intelligence replication flows between landscapes. Unofficial; not affiliated with SAP.",
+      "author": { "name": "D-LAB-5" },
+      "category": "productivity",
+      "keywords": ["sap", "data intelligence", "replication flow"]
+    }
+  ]
+}

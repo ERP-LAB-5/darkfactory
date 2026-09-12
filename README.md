@@ -1,69 +1,114 @@
 # darkfactory
 
-Shared **Claude Code skills** for the ERP-LAB-5 projects. One version-controlled
-copy of each skill, symlinked into the projects that need it — so a correction
-made while working on `sap-di-autopilot` is immediately true for `sap-cc-operator`
-as well, and none of it lives only in an untracked `~/.claude` directory.
+**The ERP-LAB-5 plugin catalogue**, and the shared Claude Code skills it owns.
 
-## Skills
+One version-controlled copy of each shared skill, delivered as plugins so any
+machine can install them — not just the one where this repository happens to be
+checked out.
 
-| Skill | What it covers | Linked into |
+```
+/plugin marketplace add ERP-LAB-5/darkfactory
+/plugin install erplab5-house@erp-lab-5
+```
+
+## What is in the catalogue
+
+An entry is a **pointer**. Three plugins live here; the rest live in the
+repository that owns them, so nobody waits on this repo to ship a change.
+
+| Plugin | What you get | Lives in |
 | --- | --- | --- |
-| [`sap-cc-operations`](skills/sap-cc-operations/) | SAP Cloud Connector: the admin REST API (monitoring is **not** under `/api/v1`), the two first-run 403s, the trace format, and working through `NoChannelsAvailableException` | `sap-cc-operator` |
-| [`sap-di-rms-api`](skills/sap-di-rms-api/) | SAP Data Intelligence RMS internal API — replication flows, task monitors, start/resume/suspend. The public DI API does not cover RMS at all | `sap-di-autopilot` |
-| [`erplab5-cli-design`](skills/erplab5-cli-design/) | House rules for the Python operator tools — read a system at the level the question needs, `--` arguments for batch with a menu when called bare, and no default system in a config file | `sap-cc-operator`, `sap-di-autopilot` |
-| [`erplab5-security-audit`](skills/erplab5-security-audit/) | Eight-domain audit across BTP (destinations, role collections, service keys, Kyma), the Cloud Connector boundary, and NetWeaver on-prem (gateway ACLs, ICF, default users, critical auth objects, audit log) — plus the repo sweep that runs before any push | `sap-cc-operator`, `sap-di-autopilot` |
-| [`git-commit`](skills/git-commit/) | Commit conventions across DLAB5 and ERP-LAB-5 — subject convention per repo, the body shape with its verification block, the two sign-off trailers | `~/.claude` (machine-wide) |
+| [`erplab5-house`](plugins/erplab5-house/) | `git-commit` (commit conventions and trailers), `erplab5-cli-design` (house rules for the Python operator tools), `erplab5-security-audit` (eight domains across BTP, the Cloud Connector and NetWeaver, plus the pre-push repo sweep) | here |
+| [`sap-cc-operations`](plugins/sap-cc-operations/) | SAP Cloud Connector: the admin REST API and where monitoring really lives, the two first-run 403s, the trace format, `NoChannelsAvailableException` | here |
+| [`sap-di-rms-api`](plugins/sap-di-rms-api/) | SAP Data Intelligence RMS internal API — replication flows, task monitors, start/resume/suspend. The public DI API does not cover RMS at all | here |
+| `pytool-kit` | Building D-LAB-5 Python tools: scaffold from the template, extend through every layer, take core fixes, release | [python-tool-template](https://github.com/ERP-LAB-5/python-tool-template) |
+| `di-replication-sync` | Compare and promote DI replication flows between landscapes (skill only) | [sap-di-tools](https://github.com/ERP-LAB-5/sap-di-tools) |
 
-## How the wiring works
+Install only what a machine needs: `erplab5-house` everywhere, the SAP ones
+where that work happens.
 
-`skills/` holds the real files. Everything else is a symlink to it.
+## Layout
 
 ```
-darkfactory/skills/sap-cc-operations/SKILL.md          <- the only real copy
-
-sap-cc-operator/.claude/skills/
-  sap-cc-operations -> ../../../darkfactory/skills/sap-cc-operations
-
-sap-di-autopilot/.claude/skills/
-  sap-di-rms-api    -> ../../../darkfactory/skills/sap-di-rms-api
-
-~/.claude/skills/
-  git-commit        -> ~/ERP-LAB-5/darkfactory/skills/git-commit
+.claude-plugin/marketplace.json          the catalogue: what exists and where
+plugins/<plugin>/
+  .claude-plugin/plugin.json             name, version, description
+  skills/<skill>/SKILL.md                the only copy of that skill
 ```
 
-Two placements, chosen per skill:
+There is still exactly one copy of every skill. What changed is that the copy
+now sits inside a plugin, which is a shape other machines can install. Skill
+directories hold real files, never symlinks: a symlink does not survive a clone
+on Windows, and the subdirectory checkout used for cross-repo entries does not
+carry one either.
 
-- **Project-scoped** (`<project>/.claude/skills/`) for skills that only make
-  sense inside one project. Relative links, so they survive the whole
-  `ERP-LAB-5` tree being moved or cloned elsewhere.
-- **Machine-wide** (`~/.claude/skills/`) for `git-commit`, which applies to every
-  repo on this workstation — including the DigitalHome.Cloud ones outside
-  ERP-LAB-5. Linking it here rather than copying keeps one source of truth.
+## Working on a skill
 
-A skill must not be linked into both at once for the same project — Claude Code
-would see the name twice.
+Edit the file, then load it without publishing anything:
 
-Run `./link-skills.sh` to create or repair every link, and
-`./link-skills.sh --check` to verify without changing anything. It is idempotent
-and refuses to overwrite a real (non-symlink) directory.
+```bash
+claude --plugin-dir ~/ERP-LAB-5/darkfactory/plugins/erplab5-house
+```
+
+That is the fast loop — the session picks up the working copy as it is on disk.
+When it is good, publish:
+
+1. bump `version` in that plugin's `.claude-plugin/plugin.json`
+2. commit and push
+3. consumers pick it up with `/plugin marketplace update erp-lab-5`
+
+## Adding a skill
+
+1. `mkdir -p plugins/<plugin>/skills/<name>` and write `SKILL.md` with `name:`
+   and `description:` frontmatter. The directory name and the `name:` must
+   match. The description is what Claude matches against, so list the phrases
+   and error strings that should trigger it — not just a topic.
+2. Put it in the plugin whose audience it fits, or start a new plugin with its
+   own `plugin.json` and add an entry to `.claude-plugin/marketplace.json`.
+3. Scrub it against the list below.
+4. Bump the plugin version, commit, push.
+
+Write down what was **hard to find**: exact endpoint paths, the response body of
+a confusing error, the flag that silently no-ops, version-dependent file names.
+A skill that restates the obvious costs context and earns nothing.
+
+## Adding a plugin that lives somewhere else
+
+Add one entry here; the files stay in their own repository, with their own
+release cadence:
+
+```json
+{
+  "name": "my-tool",
+  "source": { "source": "git-subdir",
+              "url": "https://github.com/ERP-LAB-5/my-tool.git",
+              "path": "plugin" },
+  "description": "…",
+  "author": { "name": "D-LAB-5" }
+}
+```
+
+That is the whole trick to keeping a shared catalogue from becoming a
+bottleneck: the catalogue lists, it does not hold.
 
 ## This repo is public
 
-**Everything committed here is world-readable**, and so is `sap-di-autopilot`;
-only `sap-cc-operator` is private. Skills and their projects are written while
+**Everything committed here is world-readable.** Skills are written while
 working against real systems, so they attract real identifiers — that is the
 whole risk.
 
 | Repo | Visibility |
 | --- | --- |
 | [`darkfactory`](https://github.com/ERP-LAB-5/darkfactory) | **public** |
-| [`sap-di-autopilot`](https://github.com/ERP-LAB-5/sap-di-autopilot) | **public** |
+| [`python-tool-template`](https://github.com/ERP-LAB-5/python-tool-template) | **public** |
+| [`sap-di-tools`](https://github.com/ERP-LAB-5/sap-di-tools) | **public** |
+| [`metro-map-tool`](https://github.com/ERP-LAB-5/metro-map-tool) | **public** |
+| [`sap-di-autopilot`](https://github.com/ERP-LAB-5/sap-di-autopilot) | private |
 | [`sap-cc-operator`](https://github.com/ERP-LAB-5/sap-cc-operator) | private |
 
 Check before you assume — `gh repo view ERP-LAB-5/<name> --json visibility`.
-This table was wrong for a while, claiming `sap-di-autopilot` had no remote at
-all, which is exactly how landscape identifiers end up in a public diff.
+This table has been wrong in both directions already, which is exactly how
+landscape identifiers end up in a public diff.
 
 Before committing a skill, scrub:
 
@@ -81,33 +126,29 @@ Before committing a skill, scrub:
 Credentials should never be near a skill in the first place. A quick sweep:
 
 ```bash
-grep -rnIE '(AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|dh-[a-z0-9]{8,})' skills/
+grep -rnIE '(AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|dh-[a-z0-9]{8,})' plugins/
 ```
 
 If a skill genuinely cannot be written without a real identifier, it does not
-belong in darkfactory — keep it in the private repo it describes.
+belong here — keep it in the private repo it describes, and list that repo's
+`plugin/` directory as a catalogue entry instead. Only people with access to
+that repo can install it.
 
-## Adding a skill
+## Other skill mechanisms on the same machine
 
-1. `mkdir skills/<name>` and write `SKILL.md` with `name:` and `description:`
-   frontmatter. The description is what Claude matches against, so make it list
-   the phrases and error strings that should trigger it — not just a topic.
-2. Add a row to the `LINKS` table at the top of `link-skills.sh`.
-3. `./link-skills.sh`
-4. Scrub it against the list above.
-5. Commit. The skill is now shared rather than sitting in someone's `~/.claude`.
+Not everything under `~/.claude/skills` comes from here, and that is fine:
 
-Write down what was **hard to find**: exact endpoint paths, the response body of
-a confusing error, the flag that silently no-ops, version-dependent file names.
-A skill that restates the obvious costs context and earns nothing.
+- **Vendored third-party skills.** `sap-di-autopilot` links ten `sap-btp-*`
+  skills from `kone-SAP-PLF-lab-darkfactory/.agents/skills/`, tracked by
+  `skills-lock.json` (source: `secondsky/sap-skills`). They are not ours to
+  republish; leave them on their own mechanism.
+- **`npx skills add owner/repo`** installs skills from any repository with a
+  `SKILL.md`, straight into `~/.claude/skills`. Useful for outside skills; this
+  catalogue is for ours.
+- **DigitalHome.Cloud** keeps its own equivalent at
+  `~/digitalhomeCloud/digitalhome-cloud-darkfactory`. Its skills are tied to the
+  Gatsby/Amplify platform and are deliberately not duplicated here.
 
-## Related
+## Licence
 
-- [`sap-cc-operator`](https://github.com/ERP-LAB-5/sap-cc-operator) — SAP Cloud
-  Connector tooling
-- `sap-di-autopilot` — SAP Data Intelligence replication-flow auto-healer
-- `~/digitalhomeCloud/digitalhome-cloud-darkfactory` — the DigitalHome.Cloud
-  equivalent. Its skills (`dhc-amplify-gen2`, `dhc-security-audit`,
-  `dhc-device-autodiscovery`, `dhc-electrical-installation-design`) are tied to
-  the Gatsby/Amplify platform and are deliberately **not** duplicated here;
-  `design-implement` stays machine-wide in `~/.claude/skills`.
+MIT. See [LICENSE](LICENSE).

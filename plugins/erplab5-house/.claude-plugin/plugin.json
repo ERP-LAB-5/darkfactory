@@ -1,0 +1,12 @@
+{
+  "name": "erplab5-house",
+  "version": "0.1.0",
+  "description": "House rules for every ERP-LAB-5 repository: commit conventions and their trailers, the Python operator-tool CLI design rules, and the eight-domain security audit across BTP, the Cloud Connector and NetWeaver on-prem.",
+  "author": {
+    "name": "D-LAB-5"
+  },
+  "homepage": "https://github.com/ERP-LAB-5/darkfactory",
+  "repository": "https://github.com/ERP-LAB-5/darkfactory",
+  "license": "MIT",
+  "keywords": ["erp-lab-5", "conventions", "git", "cli-design", "security-audit", "sap"]
+}
