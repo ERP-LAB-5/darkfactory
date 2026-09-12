@@ -57,6 +57,18 @@
       "author": { "name": "D-LAB-5" },
       "category": "productivity",
       "keywords": ["sap", "data intelligence", "replication flow"]
+    },
+    {
+      "name": "metro-map",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ERP-LAB-5/metro-map-tool.git",
+        "path": "plugin"
+      },
+      "description": "Draw transit-map diagrams of landscapes, pipelines and roadmaps, and render them to a standalone SVG. Brings the designer, its MCP tools and the skill that teaches an agent the spec.",
+      "author": { "name": "D-LAB-5" },
+      "category": "productivity",
+      "keywords": ["diagram", "svg", "metro map", "roadmap", "architecture"]
     }
   ]
 }
