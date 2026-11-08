@@ -18,7 +18,7 @@ repository that owns them, so nobody waits on this repo to ship a change.
 
 | Plugin | What you get | Lives in |
 | --- | --- | --- |
-| [`erplab5-house`](plugins/erplab5-house/) | `git-commit` (commit conventions and trailers), `erplab5-cli-design` (house rules for the Python operator tools), `erplab5-security-audit` (eight domains across BTP, the Cloud Connector and NetWeaver, plus the pre-push repo sweep) | here |
+| [`erplab5-house`](plugins/erplab5-house/) | `git-commit` (commit conventions and trailers), `erplab5-cli-design` (house rules for the Python operator tools). The security audit is `dlab5-security-audit` in [d-lab-5/agent-skills](https://github.com/d-lab-5/agent-skills) | here |
 | [`sap-cc-operations`](plugins/sap-cc-operations/) | SAP Cloud Connector: the admin REST API and where monitoring really lives, the two first-run 403s, the trace format, `NoChannelsAvailableException` | here |
 | [`sap-di-rms-api`](plugins/sap-di-rms-api/) | SAP Data Intelligence RMS internal API — replication flows, task monitors, start/resume/suspend. The public DI API does not cover RMS at all | here |
 | `pytool-kit` | Building D-LAB-5 Python tools: scaffold from the template, extend through every layer, take core fixes, release | [python-tool-template](https://github.com/ERP-LAB-5/python-tool-template) |

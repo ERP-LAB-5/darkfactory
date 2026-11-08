@@ -10,11 +10,11 @@
     {
       "name": "erplab5-house",
       "source": "./plugins/erplab5-house",
-      "description": "House rules for every ERP-LAB-5 repository: commit conventions, CLI design for the operator tools, and the security audit.",
-      "version": "0.1.0",
+      "description": "House rules for every ERP-LAB-5 repository: commit conventions and CLI design for the operator tools. The security audit lives in d-lab-5/agent-skills.",
+      "version": "0.2.0",
       "author": { "name": "D-LAB-5" },
       "category": "productivity",
-      "keywords": ["erp-lab-5", "conventions", "git", "security-audit"]
+      "keywords": ["erp-lab-5", "conventions", "git"]
     },
     {
       "name": "sap-cc-operations",
